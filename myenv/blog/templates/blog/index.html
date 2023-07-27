@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+
+    {% load static %}
+    <link rel="stylesheet" type="text/css" href="{% static 'blog/style.css' %}" />
+
+    <script src="https://code.jquery.com/jquery-3.7.0.js" integrity="sha256-JlqSTELeR4TLqP0OG9dxM7yDPqX1ox/HfgiSLBj8+kM=" crossorigin="anonymous"></script>
+</head>
+
+<body>
+
+    <h1>Chatbot app</h1>
+
+    <div id="chatbot">
+        <p class="botText"><span>hi there</span></p>
+    </div>
+
+    <div id="userInput">
+        <input type="text" id="textInput" name="userMessage" placeholder="type your message......" />
+        <input type="submit" value="send" id="buttonInput" />
+    </div>
+
+    <script>
+        initializeOptions();
+
+        function initializeOptions() {
+            let options = [
+                { number: 1, title: 'Weather' },
+                { number: 2, title: 'News' },
+                { number: 3, title: 'Chatting with me' }
+            ];
+
+            var html = "<p class='userText'> Chatbot: please select an option by sending a number: </p>";
+            $('#chatbot').append(html);
+
+            for (i = 0; i < options.length; i++) {
+                var html = "<p class='userText'> User:<span>" + options[i].number + "-" + options[i].title + "</span></p>";
+                $('#chatbot').append(html);
+            }
+
+            var chatbot = document.getElementById('chatbot');
+            chatbot.scrollTop = chatbot.scrollHeight;
+        }
+
+        function sendMessage(messageText) {
+            var userHTML = "<p class='userText'> User:<span>" + messageText + "</span></p>";
+            $('#chatbot').append(userHTML);
+        }
+
+        function getUserResponse(messageText) {
+            $.get('/blog/getResponse', { userMessage: messageText }).done(function (data) {
+                console.log(data);
+                var returnedMessage = "<p class='botText'>Chatbot: <span>" + data + "</span></p>";
+                $('#chatbot').append(returnedMessage);
+            });
+        }
+
+        function getWeather() {
+            navigator.geolocation.getCurrentPosition(function (pos) {
+                let lat = pos.coords.latitude;
+                let long = pos.coords.longitude;
+
+                $.get('/blog/getWeather', { lat: lat, long: long }).done(function (data) {
+                    console.log(data);
+                    var returnedMessage =
+                        "<p class='botText'>Chatbot: <span>" + data.name + "</span></p>" +
+                        "<p class='botText'>Chatbot: <span>" + data.main.temp + "</span></p>" +
+                        "<p class='botText'>Chatbot: <span>" + data.weather[0].description + "</span></p>";
+
+                    $('#chatbot').append(returnedMessage);
+                });
+            });
+        }
+        
+
+             function getNews(){
+              
+                $.get('/getWeather', { lat: lat, long: long }).done(function (data) {
+                    
+            for (i = 0; i < data.articles.length; i++) {
+              
+            
+
+                    console.log(data);
+                    var returnedMessage ="<p class='botText'>Chatbot: <span>" + data.article[i].title + "</span></p>" +
+                    
+                        "<p class='botText'>Chatbot: <span>" + data.article[i].description + "</span></p>";
+
+                    $('#chatbot').append(returnedMessage);
+            }
+                });
+
+
+             }
+            
+
+        function assistantResponse(messageText) {
+            if (messageText == '1') {
+                getWeather();
+            } else if (messageText == '2') {
+                getNews();
+            } else if (messageText == '3') {
+                alert('chat with me');
+            }
+        }
+
+        $('#buttonInput').click(function () {
+            var userText = $('#textInput').val();
+            $('#textInput').val("");
+
+            if (userText === "") {
+                alert('please type in a message');
+            } else {
+                let messageText = userText.trim();
+                sendMessage(messageText);
+                assistantResponse(messageText);
+            }
+        });
+
+    </script>
+
+</body>
+
+</html>
